@@ -13,17 +13,21 @@
 #define _USER_MEM_H_
 
 /* init the tlsf before main */
-// #define INIT_BEFORE_MAIN
+// #define TLSF_INIT_BEFORE_MAIN
 
 /*  replace system memory function */
-#define REPLACE_SYSTEM_MEM_FUNC
+// #define REPLACE_SYSTEM_MEM_FUNC
 
 /* Maximum memory block managed by tlsf */
-// #define TLSF_POOL_SIZE (0xFFFFFFFF) /* default 4GB */
+// #define USER_POOL_SIZE (0xFFFFFFFF) /* default 4GB */
+#define USER_POOL_SIZE (16 * 1024) /* default 16KB */
+
+/* The maximum amount of memory that TLSF can manage.  */
+#define TLSF_MAX_POOL_SIZE USER_POOL_SIZE
 
 /* usually use close/open irq to protect the tlsf operation */
-#define USER_AOTMIC_ENTER()
-#define USER_AOTMIC_EXIT()
+#define USER_AOTMIC_ENTER() (void)0
+#define USER_AOTMIC_EXIT() (void)0
 
 /* example */
 // #include "cmsis_compiler.h"

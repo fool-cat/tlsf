@@ -1,7 +1,7 @@
 /**
  * @file user_mem_cpp.cpp
  * @author 独霸一方 (2696652257@qq.com)
- * @brief //> Only you need to include this file to compile is enough when your project is a C++ project.
+ * @brief //> compile this file alongside tlsf.c and user_mem.c
  * @version 1.0
  * @date 2024-05-22
  *
@@ -12,8 +12,6 @@
 #include <new>
 
 #include "user_mem.h"
-
-#include "user_mem.c" // add source code of tlsf.c
 
 // clang-format off
 
@@ -28,6 +26,12 @@
 // clang-format on
 
 //+******************************** overload std new/delete ***************************************/
+
+/**
+ * Please make sure you have called `user_mem_init` before using dynamic memory.
+ * If you are using dynamic memory globally (outside functions),
+ * make sure to open the `TLSF_INIT_BEFORE_MAIN` macro to ensure that dynamic memory is initialized before use.
+ */
 
 using namespace std;
 void *operator new(std::size_t count) THROW_BADALLOC
