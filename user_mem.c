@@ -17,7 +17,7 @@ static tlsf_t user_pool = NULL;
 
 static char user_mem_block[USER_POOL_SIZE] __attribute__((aligned(8))); // TLSF requires memory alignment of 4/8 bytes on 32-bit/64-bit platforms.
 
-#ifdef TLSF_INIT_BEFORE_MAIN
+#if TLSF_INIT_BEFORE_MAIN
 __attribute__((constructor)) static void _SystemStart(void)
 {
     user_mem_init();

@@ -12,27 +12,45 @@
 #ifndef _USER_MEM_H_
 #define _USER_MEM_H_
 
+// include your header file
+
+// clang-format off
+
 /* init the tlsf before main */
-// #define TLSF_INIT_BEFORE_MAIN
+#ifndef TLSF_INIT_BEFORE_MAIN
+    #define TLSF_INIT_BEFORE_MAIN 0
+#endif
 
 /*  replace system memory function */
-// #define REPLACE_SYSTEM_MEM_FUNC
+#ifndef REPLACE_SYSTEM_MEM_FUNC
+    #define REPLACE_SYSTEM_MEM_FUNC 0
+#endif
 
 /* Maximum memory block managed by tlsf */
-// #define USER_POOL_SIZE (0xFFFFFFFF) /* default 4GB */
-#define USER_POOL_SIZE (16 * 1024) /* default 16KB */
+#ifndef USER_POOL_SIZE
+    #define USER_POOL_SIZE (16 * 1024) /* default 16KB */
+#endif
 
 /* The maximum amount of memory that TLSF can manage.  */
-#define TLSF_MAX_POOL_SIZE USER_POOL_SIZE
+#ifndef TLSF_MAX_POOL_SIZE
+    #define TLSF_MAX_POOL_SIZE USER_POOL_SIZE
+#endif
 
 /* usually use close/open irq to protect the tlsf operation */
-#define USER_AOTMIC_ENTER() (void)0
-#define USER_AOTMIC_EXIT() (void)0
+#ifndef USER_AOTMIC_ENTER
+    #define USER_AOTMIC_ENTER() (void)0
+#endif
+
+#ifndef USER_AOTMIC_EXIT
+    #define USER_AOTMIC_EXIT() (void)0
+#endif
 
 /* example */
 // #include "cmsis_compiler.h"
 // #define USER_AOTMIC_ENTER() __disable_irq()
 // #define USER_AOTMIC_EXIT() __enable_irq()
+
+// clang-format on
 
 #ifdef __cplusplus
 extern "C"
@@ -57,7 +75,7 @@ extern "C"
 // clang-format off
 
 /* You need to include this header file at the beginning of the file that you want to replace. */
-#ifdef REPLACE_SYSTEM_MEM_FUNC
+#if REPLACE_SYSTEM_MEM_FUNC
     #undef malloc
     #undef realloc
     #undef calloc

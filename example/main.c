@@ -1,7 +1,7 @@
 /**
  * @file main.c
  * @author fool_dog (2696652257@qq.com)
- * @brief C++ project test,you should compile `tlsf.c` `user_mem.c` in your project
+ * @brief C project test,you should compile `tlsf.c` `user_mem.c` in your project
  * @version 1.0
  * @date 2024-05-23
  *
@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define REPLACE_SYSTEM_MEM_FUNC // repalce std memory functions
+#define REPLACE_SYSTEM_MEM_FUNC 1 // repalce std memory functions
 #include "./user_mem.h"
 
 int main()
