@@ -41,6 +41,29 @@
 #endif
 
 /*
+** Returns one plus the index of the most significant 1-bit of n,
+** or if n is zero, returns zero.
+*/
+#ifdef TLSF_64BIT
+    #define TLSF_FLS(n) ((n) & 0xffffffff00000000ull ? 32 + TLSF_FLS32((size_t)(n) >> 32) : TLSF_FLS32(n))
+#else
+    #define TLSF_FLS(n) TLSF_FLS32(n)
+#endif
+
+#define TLSF_FLS32(n) ((n) & 0xffff0000 ? 16 + TLSF_FLS16((n) >> 16) : TLSF_FLS16(n))
+#define TLSF_FLS16(n) ((n) & 0xff00     ?  8 + TLSF_FLS8 ((n) >>  8) : TLSF_FLS8 (n))
+#define TLSF_FLS8(n)  ((n) & 0xf0       ?  4 + TLSF_FLS4 ((n) >>  4) : TLSF_FLS4 (n))
+#define TLSF_FLS4(n)  ((n) & 0xc        ?  2 + TLSF_FLS2 ((n) >>  2) : TLSF_FLS2 (n))
+#define TLSF_FLS2(n)  ((n) & 0x2        ?  1 + TLSF_FLS1 ((n) >>  1) : TLSF_FLS1 (n))
+#define TLSF_FLS1(n)  ((n) & 0x1        ?  1 : 0)
+
+/*
+** Returns round up value of log2(n).
+** Note: it is used at compile time.
+*/
+#define TLSF_LOG2_CEIL(n) ((n) & (n - 1) ? TLSF_FLS(n) : TLSF_FLS(n) - 1)
+
+/*
 ** gcc 3.4 and above have builtin support, specialized for architecture.
 ** Some compilers masquerade as gcc; patchlevel test filters them out.
 */
@@ -234,7 +257,9 @@ enum tlsf_private
 	** blocks below that size into the 0th first-level list.
 	*/
 
-#if defined (TLSF_64BIT)
+#if defined (TLSF_MAX_POOL_SIZE)
+	FL_INDEX_MAX = TLSF_LOG2_CEIL(TLSF_MAX_POOL_SIZE),
+#elif defined (TLSF_64BIT)
 	/*
 	** TODO: We can increase this to support larger sizes, at the expense
 	** of more overhead in the TLSF structure.
@@ -336,7 +361,7 @@ static const size_t block_start_offset =
 ** the prev_phys_block field, and no larger than the number of addressable
 ** bits for FL_INDEX.
 */
-static const size_t block_size_min = 
+static const size_t block_size_min =
 	sizeof(block_header_t) - sizeof(block_header_t*);
 static const size_t block_size_max = tlsf_cast(size_t, 1) << FL_INDEX_MAX;
 
@@ -497,7 +522,7 @@ static size_t adjust_request_size(size_t size, size_t align)
 		const size_t aligned = align_up(size, align);
 
 		/* aligned sized must not exceed block_size_max or we'll go out of bounds on sl_bitmap */
-		if (aligned < block_size_max) 
+		if (aligned < block_size_max)
 		{
 			adjust = tlsf_max(aligned, block_size_min);
 		}
@@ -758,9 +783,9 @@ static block_header_t* block_locate_free(control_t* control, size_t size)
 	if (size)
 	{
 		mapping_search(size, &fl, &sl);
-		
+
 		/*
-		** mapping_search can futz with the size, so for excessively large sizes it can sometimes wind up 
+		** mapping_search can futz with the size, so for excessively large sizes it can sometimes wind up
 		** with indices that are off the end of the block array.
 		** So, we protect against that here, since this is the only callsite of mapping_search.
 		** Note that we don't need to check sl, since it comes from a modulo operation that guarantees it's always in range.
@@ -995,11 +1020,11 @@ pool_t tlsf_add_pool(tlsf_t tlsf, void* mem, size_t bytes)
 	if (pool_bytes < block_size_min || pool_bytes > block_size_max)
 	{
 #if defined (TLSF_64BIT)
-		printf("tlsf_add_pool: Memory size must be between 0x%x and 0x%x00 bytes.\n", 
+		printf("tlsf_add_pool: Memory size must be between 0x%x and 0x%x00 bytes.\n",
 			(unsigned int)(pool_overhead + block_size_min),
 			(unsigned int)((pool_overhead + block_size_max) / 256));
 #else
-		printf("tlsf_add_pool: Memory size must be between %u and %u bytes.\n", 
+		printf("tlsf_add_pool: Memory size must be between %u and %u bytes.\n",
 			(unsigned int)(pool_overhead + block_size_min),
 			(unsigned int)(pool_overhead + block_size_max));
 #endif
