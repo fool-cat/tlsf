@@ -45,8 +45,8 @@ extern "C" {
 #endif
 
 /* Define the maximum memory block managed by TLSF to reduce memory usage. */
-#ifndef TLSF_MAX_POOL_SIZE
-    #define TLSF_MAX_POOL_SIZE (2^32) /* default 4GB */
+#ifndef TLSF_POOL_SIZE
+    #define TLSF_POOL_SIZE (0xFFFFFFFF) /* default 4GB */
 #endif
 
 /* tlsf_t: a TLSF structure. Can contain 1 to N pools. */

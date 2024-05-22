@@ -19,7 +19,7 @@
 #define REPLACE_SYSTEM_MEM_FUNC
 
 /* Maximum memory block managed by tlsf */
-// #define TLSF_MAX_POOL_SIZE (2^32) /* default 4GB */
+// #define TLSF_POOL_SIZE (0xFFFFFFFF) /* default 4GB */
 
 /* usually use close/open irq to protect the tlsf operation */
 #define USER_AOTMIC_ENTER()

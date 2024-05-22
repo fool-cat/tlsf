@@ -19,7 +19,7 @@
 // tlsf句柄
 static tlsf_t user_pool = NULL;
 
-static char user_mem_block[TLSF_MAX_POOL_SIZE] __attribute__((aligned(8))); // TLSF requires memory alignment of 4/8 bytes on 32-bit/64-bit platforms.
+static char user_mem_block[TLSF_POOL_SIZE] __attribute__((aligned(8))); // TLSF requires memory alignment of 4/8 bytes on 32-bit/64-bit platforms.
 
 #ifdef INIT_BEFORE_MAIN
 __attribute__((constructor)) static void _SystemStart(void)
@@ -34,7 +34,7 @@ void user_mem_init(void)
         return;
 
     USER_AOTMIC_ENTER();
-    user_pool = tlsf_create_with_pool((void *)user_mem_block, TLSF_MAX_POOL_SIZE);
+    user_pool = tlsf_create_with_pool((void *)user_mem_block, TLSF_POOL_SIZE);
     USER_AOTMIC_EXIT();
 
     if (!user_pool)
