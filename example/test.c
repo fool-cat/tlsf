@@ -14,9 +14,9 @@
 #include <string.h>
 
 #define REPLACE_SYSTEM_MEM_FUNC 1 // repalce std memory functions
-#include "./user_mem.h"
+#include "../user_mem.h"
 
-int main()
+void test_c()
 {
     user_mem_init();
     show_user_heap_info();
@@ -35,6 +35,4 @@ int main()
     free(name);
     free(array);
     show_user_heap_info();
-
-    return 0;
 }

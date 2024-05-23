@@ -10,7 +10,7 @@
  */
 
 #include <iostream>
-#include "./user_mem.h"
+#include "../user_mem.h"
 
 using namespace std;
 
@@ -29,9 +29,9 @@ public:
     float b;
 };
 
-test *global = new test(1); // Global overloading (outside functions) requires opening the `TLSF_INIT_BEFORE_MAIN` macro.
+// test *global = new test(1); // Global overloading (outside functions) requires opening the `TLSF_INIT_BEFORE_MAIN` macro.
 
-int main()
+void test_cpp()
 {
     user_mem_init();
     show_user_heap_info();
@@ -51,6 +51,4 @@ int main()
     delete p1;
     delete[] array_test;
     show_user_heap_info();
-
-    return 0;
 }
