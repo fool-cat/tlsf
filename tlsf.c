@@ -231,7 +231,17 @@ enum tlsf_public
 	** values require more memory in the control structure. Values of
 	** 4 or 5 are typical.
 	*/
+#if defined (TLSF_MAX_POOL_SIZE)
+	#if (TLSF_MAX_POOL_SIZE <= 16*1024)
+		SL_INDEX_COUNT_LOG2 = 3,
+	#elif (TLSF_MAX_POOL_SIZE <= 256*1024)
+		SL_INDEX_COUNT_LOG2 = 4,
+	#else 
+		SL_INDEX_COUNT_LOG2 = 5,
+	#endif
+#else
 	SL_INDEX_COUNT_LOG2 = 5,
+#endif
 };
 
 /* Private constants: do not modify. */

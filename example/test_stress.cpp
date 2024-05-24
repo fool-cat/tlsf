@@ -1,7 +1,7 @@
 /**
  * @file test_stress.cpp
  * @author fool_dog (2696652257@qq.com)
- * @brief you should compile `tlsf.c` `user_mem.c` in your project,don not compile the `user_mem.cpp`,this test use std::list it will use default new/delete
+ * @brief you should compile `tlsf.c` `user_mem.c` in your project,don not compile the `user_mem_cpp.cpp`,this test use std::list it will use default new/delete
  * @version 1.0
  * @date 2024-05-23
  *
@@ -116,6 +116,6 @@ void test_stress_cpp()
     {
         user_free(it.ptr);
     }
-    printf("free test used memory");
+    printf("free test used memory\r\n");
     show_user_heap_info();
 }
