@@ -40,58 +40,114 @@
 
 #include <stddef.h>
 
+#include "tlsf_config.h"
+
 #if defined(__cplusplus)
-extern "C" {
+extern "C"
+{
 #endif
 
-#include "user_mem.h"
+    /* tlsf_t: a TLSF structure. Can contain 1 to N pools. */
+    /* pool_t: a block of memory that TLSF can manage. */
+    typedef void *tlsf_t;
+    typedef void *pool_t;
 
-/* Define the maximum memory block managed by TLSF to reduce memory usage. */
-#ifndef TLSF_MAX_POOL_SIZE
-    #define TLSF_MAX_POOL_SIZE (4*1024*1024) /* default 4GB */
-#endif
+    /* Create/destroy a memory pool. */
+    tlsf_t tlsf_create(void *mem, size_t mem_size, size_t max_pool_size); /* TLSF can manage 1 to N non-contiguous memory pools, where max_pool_size represents the size of the largest pool among them. */
+    tlsf_t tlsf_create_with_pool(void *mem, size_t mem_size, size_t max_pool_size);
+    void tlsf_destroy(tlsf_t tlsf);
+    pool_t tlsf_get_pool(tlsf_t tlsf);
 
-/* tlsf_t: a TLSF structure. Can contain 1 to N pools. */
-/* pool_t: a block of memory that TLSF can manage. */
-typedef void* tlsf_t;
-typedef void* pool_t;
+    /* Add/remove memory pools. */
+    pool_t tlsf_add_pool(tlsf_t tlsf, void *mem, size_t bytes);
+    void tlsf_remove_pool(tlsf_t tlsf, pool_t pool);
 
-/* Create/destroy a memory pool. */
-tlsf_t tlsf_create(void* mem);
-tlsf_t tlsf_create_with_pool(void* mem, size_t bytes);
-void tlsf_destroy(tlsf_t tlsf);
-pool_t tlsf_get_pool(tlsf_t tlsf);
+    /* malloc/memalign/realloc/free replacements. */
+    void *tlsf_malloc(tlsf_t tlsf, size_t bytes);
+    void *tlsf_memalign(tlsf_t tlsf, size_t align, size_t bytes);
+    void *tlsf_realloc(tlsf_t tlsf, void *ptr, size_t size);
+    void tlsf_free(tlsf_t tlsf, void *ptr);
 
-/* Add/remove memory pools. */
-pool_t tlsf_add_pool(tlsf_t tlsf, void* mem, size_t bytes);
-void tlsf_remove_pool(tlsf_t tlsf, pool_t pool);
+    /* Returns internal block size, not original request size */
+    size_t tlsf_block_size(void *ptr);
 
-/* malloc/memalign/realloc/free replacements. */
-void* tlsf_malloc(tlsf_t tlsf, size_t bytes);
-void* tlsf_memalign(tlsf_t tlsf, size_t align, size_t bytes);
-void* tlsf_realloc(tlsf_t tlsf, void* ptr, size_t size);
-void tlsf_free(tlsf_t tlsf, void* ptr);
+    /* Overheads/limits of internal structures. */
+    size_t tlsf_size(tlsf_t tlsf);
+    size_t tlsf_align_size(void);
+    size_t tlsf_block_size_min(void);
+    size_t tlsf_block_size_max(tlsf_t tlsf); /* The actual maximum memory will be slightly less than the max_pool_size. */
+    size_t tlsf_pool_overhead(void);
+    size_t tlsf_alloc_overhead(void);
 
-/* Returns internal block size, not original request size */
-size_t tlsf_block_size(void* ptr);
-
-/* Overheads/limits of internal structures. */
-size_t tlsf_size(void);
-size_t tlsf_align_size(void);
-size_t tlsf_block_size_min(void);
-size_t tlsf_block_size_max(void);
-size_t tlsf_pool_overhead(void);
-size_t tlsf_alloc_overhead(void);
-
-/* Debugging. */
-typedef void (*tlsf_walker)(void* ptr, size_t size, int used, void* user);
-void tlsf_walk_pool(pool_t pool, tlsf_walker walker, void* user);
-/* Returns nonzero if any internal consistency check fails. */
-int tlsf_check(tlsf_t tlsf);
-int tlsf_check_pool(pool_t pool);
+    /* Debugging. */
+    typedef void (*tlsf_walker)(void *ptr, size_t size, int used, void *user);
+    void tlsf_walk_pool(pool_t pool, tlsf_walker walker, void *user);
+    /* Returns nonzero if any internal consistency check fails. */
+    int tlsf_check(tlsf_t tlsf);
+    int tlsf_check_pool(pool_t pool);
 
 #if defined(__cplusplus)
 };
 #endif
+
+// Compile-time calculation of the specified TLSF control block size.
+
+// clang-format off
+
+#if defined (__alpha__) || defined (__ia64__) || defined (__x86_64__) \
+	|| defined (_WIN64) || defined (__LP64__) || defined (__LLP64__)
+    #if !defined TLSF_64BIT
+        #define TLSF_64BIT
+    #endif
+#endif
+
+#define TLSF_FLS1(n)  ((n) & 0x1        ?  1 : 0)
+#define TLSF_FLS2(n)  ((n) & 0x2        ?  1 + TLSF_FLS1 ((n) >>  1) : TLSF_FLS1 (n))
+#define TLSF_FLS4(n)  ((n) & 0xc        ?  2 + TLSF_FLS2 ((n) >>  2) : TLSF_FLS2 (n))
+#define TLSF_FLS8(n)  ((n) & 0xf0       ?  4 + TLSF_FLS4 ((n) >>  4) : TLSF_FLS4 (n))
+#define TLSF_FLS16(n) ((n) & 0xff00     ?  8 + TLSF_FLS8 ((n) >>  8) : TLSF_FLS8 (n))
+#define TLSF_FLS32(n) ((n) & 0xffff0000 ? 16 + TLSF_FLS16((n) >> 16) : TLSF_FLS16(n))
+
+#ifdef TLSF_64BIT
+    #define TLSF_FLS(n) ((n) & 0xffffffff00000000ull ? 32 + TLSF_FLS32(((size_t)(n) >> 32)& 0xffffffff) : TLSF_FLS32(n))
+#else
+    #define TLSF_FLS(n) TLSF_FLS32(n)
+#endif
+
+/*
+** Returns round up value of log2(n).
+** Note: it is used at compile time.
+*/
+#define TLSF_LOG2_CEIL(n) ((n) & (n - 1) ? TLSF_FLS(n) : TLSF_FLS(n) - 1)
+
+// clang-format on
+
+#define CALC_FL_INDEX_MAX(max_pool_size) \
+    TLSF_LOG2_CEIL(max_pool_size)
+
+#define CALC_SL_INDEX_COUNT_LOG2(max_pool_size)                                   \
+    (((max_pool_size) <= (16 * 1024)) ? 3 : ((max_pool_size) <= (256 * 1024)) ? 4 \
+                                                                              : 5)
+
+#define CALC_SL_INDEX_COUNT(max_pool_size) \
+    (1 << CALC_SL_INDEX_COUNT_LOG2(max_pool_size))
+
+#if defined(TLSF_64BIT)
+#define CALC_FL_INDEX_SHIFT(max_pool_size) \
+    (CALC_SL_INDEX_COUNT_LOG2(max_pool_size) + 3)
+#else
+#define CALC_FL_INDEX_SHIFT(max_pool_size) \
+    (CALC_SL_INDEX_COUNT_LOG2(max_pool_size) + 2)
+#endif
+
+#define CALC_FL_INDEX_COUNT(max_pool_size) \
+    (CALC_FL_INDEX_MAX(max_pool_size) - CALC_FL_INDEX_SHIFT(max_pool_size) + 1)
+
+extern const size_t control_size;
+#define TLSF_CALC_SZIE(max_pool_size)                                         \
+    (control_size + (sizeof(size_t *) * CALC_FL_INDEX_COUNT(max_pool_size)) + \
+     (sizeof(size_t *) * (CALC_FL_INDEX_COUNT(max_pool_size) * CALC_SL_INDEX_COUNT(max_pool_size))))
+
+// #define _DEBUG 1
 
 #endif
