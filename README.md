@@ -1,5 +1,7 @@
 # Change
 
+原版tlsf内存管理仅根据平台位数进行配置,对于MCU等小内存平台存在较多损耗,根据[LVGL-memory-reference](https://github.com/lvgl/lvgl/blob/master/src/stdlib/builtin/lv_tlsf.c),[ESP-tlsf-reference](https://github.com/espressif/tlsf)进行修改,可以动态根据要管理的最大内存块大小进行配置,比如STM32 F40*系列存在Core Coupled Memory（CCM）,这部分内存无法被DMA等访问,可以创建多个tlsf对象分别管理对应的内存池
+
 The default TLSF control block size is determined based on your platform, typically 6KB+ for 64-bit systems and 3KB+ for 32-bit systems. When porting to certain embedded MCU platforms with limited RAM, where only tens of kilobytes of RAM are available, it may be necessary to reduce the control block size to save RAM. This can be achieved by adjusting the control block size automatically through macro definitions based on the maximum block size managed by TLSF.[LVGL-memory-reference](https://github.com/lvgl/lvgl/blob/master/src/stdlib/builtin/lv_tlsf.c)
 
 # tlsf

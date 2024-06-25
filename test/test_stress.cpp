@@ -1,9 +1,9 @@
 /**
  * @file test_stress.cpp
  * @author fool_dog (2696652257@qq.com)
- * @brief you should compile `tlsf.c` `user_mem.c` in your project,don not compile the `user_mem_cpp.cpp`,this test use std::list it will use default new/delete
+ * @brief
  * @version 1.0
- * @date 2024-05-23
+ * @date 2024-06-25
  *
  * @copyright Copyright (c) 2024
  *
@@ -16,7 +16,7 @@
 #include <stdint.h>
 #include <time.h>
 
-#include "../user_mem.h"
+#include "../example/tlsf_new.hpp"
 
 using namespace std;
 

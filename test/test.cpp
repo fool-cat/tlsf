@@ -1,20 +1,21 @@
 /**
- * @file main.c
+ * @file test.cpp
  * @author fool_dog (2696652257@qq.com)
- * @brief C++ project test,you should compile `tlsf.c` `user_mem.c` `user_mem_cpp.cpp` in your project
+ * @brief
  * @version 1.0
- * @date 2024-05-23
+ * @date 2024-06-25
  *
  * @copyright Copyright (c) 2024
  *
  */
 
 #include <iostream>
-#include "../user_mem.h"
+
+#include "../example/tlsf_new.hpp"
 
 using namespace std;
 
-class test
+class test : public tlsf
 {
 public:
     test() = default;
@@ -39,7 +40,7 @@ void test_cpp()
 
     test *p1 = new test;
     test *p2 = new test;
-    test *p3 = new test;
+    test *p3 = new test(10);
     test *array_test = new test[10];
 
     show_user_heap_info();
