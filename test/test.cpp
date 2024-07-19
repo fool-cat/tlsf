@@ -9,12 +9,13 @@
  *
  */
 
-#include <iostream>
+#include <stdio.h>
 
 #include "../example/tlsf_new.hpp"
 
 using namespace std;
 
+// tlsf base class overload new/delete
 class test : public tlsf
 {
 public:
@@ -38,12 +39,22 @@ void test_cpp()
     show_user_heap_info();
     printf("cpp overload test---------------------\r\n");
 
+#if TLSF_GLOBAL_NEW
+    int32_t *g_int_p = new int32_t;
+    int32_t *g_int_arr_p = new int32_t[10];
+#endif
+
     test *p1 = new test;
     test *p2 = new test;
     test *p3 = new test(10);
     test *array_test = new test[10];
-
     show_user_heap_info();
+
+#if TLSF_GLOBAL_NEW
+    delete g_int_p;
+    delete[] g_int_arr_p;
+    show_user_heap_info();
+#endif
 
     delete p2;
     delete p3;

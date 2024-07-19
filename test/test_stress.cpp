@@ -9,7 +9,7 @@
  *
  */
 
-#include <iostream>
+#include <stdio.h>
 #include <chrono>
 #include <ctime>
 #include <list>
@@ -70,7 +70,7 @@ void test_stress_cpp()
         }
         else
         {
-            // cout << " 第" << i << "次内存分配失败,已分配内存大小: " << use_size << ",   本次分配大小:" << size << endl;
+            // printf("第%d次内存分配失败,已经超过总大小,已分配内存大小: %d,本次分配大小: %d\n", i, use_size, size);
             failed_count++;
         }
 
@@ -88,12 +88,12 @@ void test_stress_cpp()
                     {
                         it = next(it);
                     }
-                    // cout << "tlsf_free: " << it->second.size << " " << it->second.ptr << endl;
+                    printf("tlsf_free: %d\t0x%p\r\n", it->size, it->ptr);
                     user_free(it->ptr);
                     use_size -= it->size;
                     ptrs.erase(it);
                     // 打印剩余map大小
-                    // cout << "ptrs.size: " << ptrs.size() << endl;
+                    printf("ptrs.size: %d\r\n", ptrs.size());
                 }
                 else
                 {
@@ -104,12 +104,12 @@ void test_stress_cpp()
     }
 
     // 打印总计分配的内存大小
-    cout << "use_size: " << use_size << endl;
-    cout << "failed_count: " << failed_count << ",\tsuccess_count: " << success_count << endl;
+    printf("use_size: %d\r\n", use_size);
+    printf("failed_count: %d,\tsuccess_count: %d\r\n", failed_count, success_count);
 
     // 打印平均每条分配内存的时间
     if (failed_count + success_count > 0)
-        cout << "average spend time: " << (double)spend_time / CLOCKS_PER_SEC * 1e6 / (failed_count + success_count) << endl; // maybe us?
+        printf("average spend time: %f\r\n", (double)spend_time / CLOCKS_PER_SEC * 1e6 / (failed_count + success_count)); // maybe us?
 
     show_user_heap_info();
     for (auto it : ptrs)

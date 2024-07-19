@@ -85,7 +85,7 @@ public:
 
     T *allocate(std::size_t n)
     {
-        T *ptr = tlsf::operator new(n * sizeof(T));
+        T *ptr = user_malloc(n * sizeof(T));
         return ptr;
     }
 
