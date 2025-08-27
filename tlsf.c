@@ -3,25 +3,83 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "tlsf_config.h"
 #include "tlsf.h"
 
-#include "tlsf_config.h"
+// clang-format off
 
 /*
 ** Set assert macro, if it has not been provided by the user.
 */
 #if !defined(tlsf_assert)
-#include <assert.h>
-#define tlsf_assert assert
+	#include <assert.h>
+	#define tlsf_assert assert
 #endif
 
 /*
 ** Set tlsf_printf macro, if it has not been provided by the user.
 */
 #if !defined(tlsf_printf)
-#include <stdio.h>
-#define tlsf_printf printf
+	#include <stdio.h>
+	#define tlsf_printf printf
 #endif
+
+#if defined (__alpha__) || defined (__ia64__) || defined (__x86_64__) \
+	|| defined (_WIN64) || defined (__LP64__) || defined (__LLP64__)
+    #if !defined TLSF_64BIT
+        #define TLSF_64BIT
+    #endif
+#endif
+
+#define TLSF_FLS1(n)  ((n) & 0x1        ?  1 : 0)
+#define TLSF_FLS2(n)  ((n) & 0x2        ?  1 + TLSF_FLS1 ((n) >>  1) : TLSF_FLS1 (n))
+#define TLSF_FLS4(n)  ((n) & 0xc        ?  2 + TLSF_FLS2 ((n) >>  2) : TLSF_FLS2 (n))
+#define TLSF_FLS8(n)  ((n) & 0xf0       ?  4 + TLSF_FLS4 ((n) >>  4) : TLSF_FLS4 (n))
+#define TLSF_FLS16(n) ((n) & 0xff00     ?  8 + TLSF_FLS8 ((n) >>  8) : TLSF_FLS8 (n))
+#define TLSF_FLS32(n) ((n) & 0xffff0000 ? 16 + TLSF_FLS16((n) >> 16) : TLSF_FLS16(n))
+
+#ifdef TLSF_64BIT
+    #define TLSF_FLS(n) ((n) & 0xffffffff00000000ull ? 32 + TLSF_FLS32(((size_t)(n) >> 32) & 0xffffffff) : TLSF_FLS32(n))
+#else
+    #define TLSF_FLS(n) TLSF_FLS32(n)
+#endif
+
+/*
+** Returns round up value of log2(n).
+** Note: it is used at compile time.
+*/
+#define TLSF_LOG2_CEIL(n) ((n) & (n - 1) ? TLSF_FLS(n) : TLSF_FLS(n) - 1)
+
+#define CALC_FL_INDEX_MAX(max_pool_size) \
+    TLSF_LOG2_CEIL(max_pool_size)
+
+#define CALC_SL_INDEX_COUNT_LOG2(max_pool_size)                                   \
+    (((max_pool_size) <= (16 * 1024)) ? 3 : ((max_pool_size) <= (256 * 1024)) ? 4 \
+                                                                              : 5)
+
+#define CALC_SL_INDEX_COUNT(max_pool_size) \
+    (1 << CALC_SL_INDEX_COUNT_LOG2(max_pool_size))
+
+#if defined(TLSF_64BIT)
+    #define CALC_FL_INDEX_SHIFT(max_pool_size) \
+        (CALC_SL_INDEX_COUNT_LOG2(max_pool_size) + 3)
+#else
+    #define CALC_FL_INDEX_SHIFT(max_pool_size) \
+        (CALC_SL_INDEX_COUNT_LOG2(max_pool_size) + 2)
+#endif
+
+#define CALC_FL_INDEX_COUNT(max_pool_size) \
+    (CALC_FL_INDEX_MAX(max_pool_size) - CALC_FL_INDEX_SHIFT(max_pool_size) + 1)
+
+// Compile-time calculation of the specified TLSF control block size.
+extern const size_t control_size;
+#define TLSF_CALC_SZIE(max_pool_size)                                         \
+    (control_size + (sizeof(size_t *) * CALC_FL_INDEX_COUNT(max_pool_size)) + \
+     (sizeof(size_t *) * (CALC_FL_INDEX_COUNT(max_pool_size) * CALC_SL_INDEX_COUNT(max_pool_size))))
+
+// clang-format on
+
+#undef TLSF_64BIT
 
 // clang-format off
 

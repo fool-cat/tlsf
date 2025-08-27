@@ -15,7 +15,7 @@ Features
 
 * O(1) cost for malloc, free, realloc, memalign
 * Extremely low overhead per allocation (4 bytes)
-* Low overhead per TLSF management of pools (~3kB)
+* ~Low overhead per TLSF management of pools (\~3kB)~ It depends on the total amount of memory that needs to be managed.
 * Low fragmentation
 * Compiles to only a few kB of code and data
 * Support for adding and removing memory pool regions on the fly
