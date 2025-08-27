@@ -1,7 +1,11 @@
-#include "tlsf_new.hpp"
+#include "tlsf_config.h" // 自行保证路径可见性
 
-#include "tlsf_impl_config.h"
+#include "tlsf_new.hpp"
 #include "tlsf_impl.h"
+
+#ifndef TLSF_GLOBAL_NEW
+#define TLSF_GLOBAL_NEW 0
+#endif // TLSF_GLOBAL_NEW
 
 #if TLSF_GLOBAL_NEW
 

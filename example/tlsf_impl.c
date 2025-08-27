@@ -1,31 +1,54 @@
 #include <string.h>
 
-#include "../tlsf_config.h"
+#include "tlsf_config.h" // 自行保证路径可见性
+
 #include "../tlsf.h"
 
-#include "tlsf_impl_config.h"
 #include "tlsf_impl.h"
+
+// clang-format off
 
 /*
 ** Set assert macro, if it has not been provided by the user.
 */
 #if !defined(tlsf_assert)
-#include <assert.h>
-#define tlsf_assert assert
+	#include <assert.h>
+	#define tlsf_assert assert
 #endif
 
 /*
 ** Set tlsf_printf macro, if it has not been provided by the user.
 */
 #if !defined(tlsf_printf)
-#include <stdio.h>
-#define tlsf_printf printf
+	#include <stdio.h>
+	#define tlsf_printf printf
 #endif
 
-// tlsf句柄
-static tlsf_t user_pool = NULL;
+/* init the tlsf before main function */
+#ifndef TLSF_INIT_BEFORE_MAIN
+    #define TLSF_INIT_BEFORE_MAIN 0
+#endif
 
+/* Maximum memory block managed by tlsf */
+#ifndef TLSF_POOL_SIZE
+    #define TLSF_POOL_SIZE (16 * 1024) /* default 16KB */
+#endif
+
+/* usually use close/open irq to protect the tlsf operation */
+#ifndef TLSF_AOTMIC_ENTER
+    #define TLSF_AOTMIC_ENTER() (void)0
+#endif
+
+#ifndef TLSF_AOTMIC_EXIT
+    #define TLSF_AOTMIC_EXIT() (void)0
+#endif
+
+// clang-format on
+
+static tlsf_t user_pool = NULL;
 static size_t user_mem_block[(TLSF_POOL_SIZE + sizeof(size_t) + 1) / sizeof(size_t)]; // TLSF requires memory alignment of 4/8 bytes on 32-bit/64-bit platforms.
+
+//+*********************************  **********************************/
 
 #if TLSF_INIT_BEFORE_MAIN
 __attribute__((constructor)) static void _SystemStart(void)
@@ -61,10 +84,12 @@ void *user_malloc(size_t size)
 	ptr = tlsf_malloc(user_pool, size);
 	TLSF_AOTMIC_EXIT();
 
+#if 0
 	if (!ptr)
 	{
 		tlsf_printf("user_malloc failed, size = %zu", size);
 	}
+#endif
 
 	return ptr;
 }
