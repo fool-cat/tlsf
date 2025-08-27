@@ -9,27 +9,22 @@
 #endif
 
 /* Maximum memory block managed by tlsf */
-#ifndef USER_POOL_SIZE
-    #define USER_POOL_SIZE (16 * 1024) /* default 16KB */
+#ifndef TLSF_POOL_SIZE
+    #define TLSF_POOL_SIZE (16 * 1024) /* default 16KB */
 #endif
 
 /* usually use close/open irq to protect the tlsf operation */
-#ifndef USER_AOTMIC_ENTER
-    #define USER_AOTMIC_ENTER() (void)0
+#ifndef TLSF_AOTMIC_ENTER
+    #define TLSF_AOTMIC_ENTER() (void)0
 #endif
 
-#ifndef USER_AOTMIC_EXIT
-    #define USER_AOTMIC_EXIT() (void)0
+#ifndef TLSF_AOTMIC_EXIT
+    #define TLSF_AOTMIC_EXIT() (void)0
 #endif
 /* example */
 // #include "cmsis_compiler.h"
-// #define USER_AOTMIC_ENTER() __disable_irq()
-// #define USER_AOTMIC_EXIT() __enable_irq()
-
-/*  replace system memory function */
-#ifndef REPLACE_SYSTEM_MEM_FUNC
-    #define REPLACE_SYSTEM_MEM_FUNC 0
-#endif
+// #define TLSF_AOTMIC_ENTER() __disable_irq()
+// #define TLSF_AOTMIC_EXIT() __enable_irq()
 
 #ifdef __cplusplus
     //+******************************** replace the global new/delete with tlsf_new/delete ***************************************/

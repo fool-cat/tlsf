@@ -5,6 +5,8 @@
 
 #include "tlsf.h"
 
+#include "tlsf_config.h"
+
 /*
 ** Set assert macro, if it has not been provided by the user.
 */

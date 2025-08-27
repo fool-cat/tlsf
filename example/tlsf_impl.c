@@ -1,5 +1,10 @@
-#include "tlsf_impl.h"
 #include <string.h>
+
+#include "../tlsf_config.h"
+#include "../tlsf.h"
+
+#include "tlsf_impl_config.h"
+#include "tlsf_impl.h"
 
 /*
 ** Set assert macro, if it has not been provided by the user.
@@ -20,7 +25,7 @@
 // tlsf句柄
 static tlsf_t user_pool = NULL;
 
-static char user_mem_block[USER_POOL_SIZE] __attribute__((aligned(sizeof(size_t)))); // TLSF requires memory alignment of 4/8 bytes on 32-bit/64-bit platforms.
+static size_t user_mem_block[(TLSF_POOL_SIZE + sizeof(size_t) + 1) / sizeof(size_t)]; // TLSF requires memory alignment of 4/8 bytes on 32-bit/64-bit platforms.
 
 #if TLSF_INIT_BEFORE_MAIN
 __attribute__((constructor)) static void _SystemStart(void)
@@ -34,9 +39,9 @@ void user_mem_init(void)
 	if (user_pool)
 		return;
 
-	USER_AOTMIC_ENTER();
-	user_pool = tlsf_create_with_pool((void *)user_mem_block, sizeof(user_mem_block), USER_POOL_SIZE);
-	USER_AOTMIC_EXIT();
+	TLSF_AOTMIC_ENTER();
+	user_pool = tlsf_create_with_pool((void *)user_mem_block, sizeof(user_mem_block), sizeof(user_mem_block));
+	TLSF_AOTMIC_EXIT();
 
 	if (!user_pool)
 	{
@@ -52,9 +57,9 @@ void *user_malloc(size_t size)
 	tlsf_assert(user_pool != NULL);
 
 	void *ptr = NULL;
-	USER_AOTMIC_ENTER();
+	TLSF_AOTMIC_ENTER();
 	ptr = tlsf_malloc(user_pool, size);
-	USER_AOTMIC_EXIT();
+	TLSF_AOTMIC_EXIT();
 
 	if (!ptr)
 	{
@@ -69,9 +74,9 @@ void *user_realloc(void *ptr, size_t size)
 	tlsf_assert(user_pool != NULL);
 
 	void *newPtr = NULL;
-	USER_AOTMIC_ENTER();
+	TLSF_AOTMIC_ENTER();
 	newPtr = tlsf_realloc(user_pool, ptr, size);
-	USER_AOTMIC_EXIT();
+	TLSF_AOTMIC_EXIT();
 	return newPtr;
 }
 
@@ -80,9 +85,9 @@ void *user_calloc(size_t num, size_t size)
 	tlsf_assert(user_pool != NULL);
 
 	void *ptr = NULL;
-	USER_AOTMIC_ENTER();
+	TLSF_AOTMIC_ENTER();
 	ptr = tlsf_malloc(user_pool, num * size);
-	USER_AOTMIC_EXIT();
+	TLSF_AOTMIC_EXIT();
 	if (ptr)
 	{
 		memset(ptr, 0, num * size);
@@ -95,9 +100,9 @@ void *user_memalign(size_t align, size_t size)
 	tlsf_assert(user_pool != NULL);
 
 	void *ptr = NULL;
-	USER_AOTMIC_ENTER();
+	TLSF_AOTMIC_ENTER();
 	ptr = tlsf_memalign(user_pool, align, size);
-	USER_AOTMIC_EXIT();
+	TLSF_AOTMIC_EXIT();
 	return ptr;
 }
 
@@ -105,9 +110,9 @@ void user_free(void *ptr)
 {
 	tlsf_assert(user_pool != NULL);
 
-	USER_AOTMIC_ENTER();
+	TLSF_AOTMIC_ENTER();
 	tlsf_free(user_pool, ptr);
-	USER_AOTMIC_EXIT();
+	TLSF_AOTMIC_EXIT();
 }
 
 //+******************************** test ***************************************/

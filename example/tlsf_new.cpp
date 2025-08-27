@@ -1,5 +1,8 @@
 #include "tlsf_new.hpp"
 
+#include "tlsf_impl_config.h"
+#include "tlsf_impl.h"
+
 #if TLSF_GLOBAL_NEW
 
 //+******************************** overload global std new/delete ***************************************/

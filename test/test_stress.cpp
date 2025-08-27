@@ -24,7 +24,7 @@ using namespace std;
 #define GET_TIME() clock()
 #define LOOP_TIMES (1e6)
 #define EACH_SIZE_MAX (1 * 1024)
-#define CRITICAL_SIZE (USER_POOL_SIZE * 1 / 2)
+#define CRITICAL_SIZE (TLSF_POOL_SIZE * 1 / 2)
 
 struct memInfo
 {
@@ -51,7 +51,7 @@ void test_stress_cpp()
     for (int i = 0; i < LOOP_TIMES; i++)
     {
         int size = rand() % EACH_SIZE_MAX + 1;
-        if (use_size + size > USER_POOL_SIZE)
+        if (use_size + size > TLSF_POOL_SIZE)
         {
             // printf("第%d次内存分配失败,已经超过总大小,已分配内存大小: %d,本次分配大小: %d\n", i, use_size, size);
             i--;
@@ -88,12 +88,12 @@ void test_stress_cpp()
                     {
                         it = next(it);
                     }
-                    printf("tlsf_free: %d\t0x%p\r\n", it->size, it->ptr);
+                    // printf("tlsf_free: %d\t0x%p\r\n", it->size, it->ptr);
                     user_free(it->ptr);
                     use_size -= it->size;
                     ptrs.erase(it);
                     // 打印剩余map大小
-                    printf("ptrs.size: %d\r\n", ptrs.size());
+                    // printf("ptrs.size: %zu\r\n", ptrs.size());
                 }
                 else
                 {
